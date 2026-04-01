@@ -28,7 +28,7 @@ export const LandingPage = () => {
           <a className="text-ink/60 hover:bg-primary-container hover:shadow-[2px_2px_0px_#1A1A1A] transition-all px-2" href="#">Features</a>
           <Link className="text-ink/60 hover:bg-primary-container hover:shadow-[2px_2px_0px_#1A1A1A] transition-all px-2" to="/dashboard">Dashboard</Link>
         </div>
-        <Link to="/onboarding" className="bg-primary-container border-3 border-ink px-6 py-2 font-black uppercase tracking-tighter shadow-[3px_3px_0px_#1A1A1A] hover:shadow-[2px_2px_0px_#1A1A1A] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+        <Link to="/auth" className="bg-primary-container border-3 border-ink px-6 py-2 font-black uppercase tracking-tighter shadow-[3px_3px_0px_#1A1A1A] hover:shadow-[2px_2px_0px_#1A1A1A] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
           Sign In with Google
         </Link>
       </nav>
@@ -52,7 +52,7 @@ export const LandingPage = () => {
             AI-powered academic dashboard that tracks your grades, predicts your GPA, and tells you exactly what to study next.
           </p>
           <div className="flex flex-col md:flex-row gap-6 justify-center">
-            <Link to="/onboarding" className="bg-primary-container border-3 border-ink px-12 py-6 text-2xl md:text-4xl font-black uppercase tracking-tighter shadow-[6px_6px_0px_#1A1A1A] hover:shadow-[3px_3px_0px_#1A1A1A] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[8px] active:translate-y-[8px] transition-all">
+            <Link to="/auth" className="bg-primary-container border-3 border-ink px-12 py-6 text-2xl md:text-4xl font-black uppercase tracking-tighter shadow-[6px_6px_0px_#1A1A1A] hover:shadow-[3px_3px_0px_#1A1A1A] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[8px] active:translate-y-[8px] transition-all">
               Get Started with Google
             </Link>
           </div>
@@ -152,7 +152,7 @@ export const LandingPage = () => {
           </div>
           <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-8">Ready to Win?</h2>
           <p className="text-2xl font-bold mb-12">Join the elite cohort of students using data to destroy their competition.</p>
-          <Link to="/onboarding" className="bg-primary-container border-3 border-ink px-12 py-6 text-2xl font-black uppercase tracking-tighter shadow-[6px_6px_0px_#1A1A1A] hover:bg-ink hover:text-primary-container transition-all inline-block w-full md:w-auto">
+          <Link to="/auth" className="bg-primary-container border-3 border-ink px-12 py-6 text-2xl font-black uppercase tracking-tighter shadow-[6px_6px_0px_#1A1A1A] hover:bg-ink hover:text-primary-container transition-all inline-block w-full md:w-auto">
             Start Forging Now
           </Link>
         </motion.div>

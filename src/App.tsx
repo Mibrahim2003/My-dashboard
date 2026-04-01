@@ -7,6 +7,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { LandingPage } from './components/LandingPage';
+import { Auth } from './components/Auth';
 import { Dashboard } from './components/Dashboard';
 import { Analytics } from './components/Analytics';
 import { Onboarding } from './components/Onboarding';
@@ -18,6 +19,9 @@ export default function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
+        
+        {/* Auth Route */}
+        <Route path="/auth" element={<Auth />} />
         
         {/* Onboarding */}
         <Route path="/onboarding" element={<Onboarding />} />

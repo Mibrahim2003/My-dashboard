@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -41,7 +42,13 @@ const SidebarItem = ({ to, icon: Icon, label, active }: SidebarItemProps) => (
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
 
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -130,7 +137,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <button className="flex items-center gap-3 p-2 text-xs font-bold uppercase tracking-widest hover:text-secondary transition-colors text-left">
                 <HelpCircle size={14} /> Help
               </button>
-              <button className="flex items-center gap-3 p-2 text-xs font-bold uppercase tracking-widest hover:text-error transition-colors text-left">
+              <button 
+                onClick={handleLogout}
+                className="flex items-center gap-3 p-2 text-xs font-bold uppercase tracking-widest hover:text-error transition-colors text-left"
+              >
                 <LogOut size={14} /> Logout
               </button>
             </div>
