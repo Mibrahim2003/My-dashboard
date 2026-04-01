@@ -29,3 +29,14 @@ export interface Stat {
   value: string;
   color: string;
 }
+
+export interface UserProfile {
+  name: string;
+  degree: string;
+  universityName: string;
+  graduationYear: string;
+  currentCgpa: number;
+  targetGpa: number;
+  semester: string;
+  courseCount: number;
+}

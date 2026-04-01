@@ -1,8 +1,10 @@
 import React, { createContext, useContext } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { Course, Deadline } from '../types';
+import { Course, Deadline, UserProfile } from '../types';
 
 interface StoreContextType {
+  userProfile: UserProfile | null;
+  setUserProfile: (profile: UserProfile | null) => void;
   courses: Course[];
   setCourses: (courses: Course[]) => void;
   addCourse: (course: Course) => void;
@@ -14,6 +16,8 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [userProfile, setUserProfile] = useLocalStorage<UserProfile | null>('outlier-profile', null);
+
   // Initial demo data so the dashboard doesn't look empty for the first time
   const [courses, setCourses] = useLocalStorage<Course[]>('outlier-courses', [
     { id: '1', code: 'CS-201', name: 'Data Structures', credits: 3, gradeProgress: 88, color: 'bg-primary', grade: 'A', weightage: { quizzes: 15, assignments: 10, midterm: 30, final: 40, project: 5 } },
@@ -33,7 +37,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <StoreContext.Provider value={{ courses, setCourses, addCourse, removeCourse, deadlines, setDeadlines }}>
+    <StoreContext.Provider value={{ userProfile, setUserProfile, courses, setCourses, addCourse, removeCourse, deadlines, setDeadlines }}>
       {children}
     </StoreContext.Provider>
   );

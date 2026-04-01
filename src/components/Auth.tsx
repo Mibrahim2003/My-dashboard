@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
+import { useStore } from '../context/StoreContext';
 import { supabase } from '../lib/supabase';
 
 export function Auth() {
   const navigate = useNavigate();
+  const { userProfile } = useStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -39,7 +41,7 @@ export function Auth() {
       setIsLoading(false);
     } else {
       setIsLoading(false);
-      navigate('/onboarding');
+      navigate(userProfile?.name ? '/dashboard' : '/profile-setup');
     }
   };
 

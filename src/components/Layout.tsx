@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useStore } from '../context/StoreContext';
 import { supabase } from '../lib/supabase';
 import { 
   LayoutDashboard, 
@@ -43,7 +44,14 @@ const SidebarItem = ({ to, icon: Icon, label, active }: SidebarItemProps) => (
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { userProfile } = useStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (!userProfile?.name) {
+      navigate('/profile-setup');
+    }
+  }, [userProfile, navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

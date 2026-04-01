@@ -11,6 +11,7 @@ import { Auth } from './components/Auth';
 import { Dashboard } from './components/Dashboard';
 import { Analytics } from './components/Analytics';
 import { Onboarding } from './components/Onboarding';
+import { ProfileSetup } from './components/ProfileSetup';
 import { CourseDetail } from './components/CourseDetail';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/auth" element={<Auth />} />
         
         {/* Onboarding */}
+        <Route path="/profile-setup" element={<ProfileSetup />} />
         <Route path="/onboarding" element={<Onboarding />} />
 
         {/* Protected Routes (Wrapped in Layout) */}
