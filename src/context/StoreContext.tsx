@@ -15,12 +15,12 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Initial demo data so the dashboard doesn't look empty for the first time
-  const [courses, setCourses] = useLocalStorage<Course[]>('studyforge-courses', [
+  const [courses, setCourses] = useLocalStorage<Course[]>('outlier-courses', [
     { id: '1', code: 'CS-201', name: 'Data Structures', credits: 3, gradeProgress: 88, color: 'bg-primary', grade: 'A', weightage: { quizzes: 15, assignments: 10, midterm: 30, final: 40, project: 5 } },
     { id: '2', code: 'EE-101', name: 'Circuit Theory', credits: 4, gradeProgress: 72, color: 'bg-secondary', grade: 'B+', weightage: { quizzes: 15, assignments: 10, midterm: 30, final: 40, project: 5 } },
   ]);
 
-  const [deadlines, setDeadlines] = useLocalStorage<Deadline[]>('studyforge-deadlines', [
+  const [deadlines, setDeadlines] = useLocalStorage<Deadline[]>('outlier-deadlines', [
     { id: '1', title: 'Quiz 2 — CS-201', course: 'CS-201', topic: 'Graph Algorithms', dueDate: 'Due Tomorrow', priority: 'urgent' },
   ]);
 

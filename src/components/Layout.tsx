@@ -63,7 +63,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           <Link to="/" className="text-2xl font-black uppercase tracking-tighter text-ink">
-            StudyForge
+            Outlier
           </Link>
           <div className="hidden md:flex items-center bg-white border-3 border-ink px-4 py-2 w-96 shadow-[2px_2px_0px_#1A1A1A]">
             <Search size={18} className="mr-2 text-ink" />
@@ -102,7 +102,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-primary border-2 border-ink"></div>
               <div>
-                <p className="text-xl font-black text-ink leading-none">StudyForge</p>
+                <p className="text-xl font-black text-ink leading-none">Outlier</p>
                 <p className="uppercase tracking-widest text-[10px] font-bold opacity-60">Academic Engine</p>
               </div>
             </div>

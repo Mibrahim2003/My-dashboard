@@ -44,7 +44,7 @@ export const Onboarding = () => {
       {/* Top Navigation Bar */}
       <nav className="fixed top-0 w-full z-50 border-b-4 border-ink bg-background flex justify-between items-center h-16 px-6 md:px-12">
         <div className="text-xl font-black text-ink uppercase tracking-tighter">
-          StudyForge
+          Outlier
         </div>
         <div className="flex items-center gap-4">
           <span className="bg-ink text-white px-3 py-1 text-xs font-black uppercase tracking-widest">
@@ -221,7 +221,7 @@ export const Onboarding = () => {
           <div>
             <h2 className="text-3xl font-black uppercase tracking-tighter mb-4 italic underline decoration-secondary decoration-4">The Forge Philosophy</h2>
             <p className="font-medium text-lg leading-relaxed">
-              We don't just track grades. We build academic empires. By defining your weightages now, StudyForge AI can predict your workload spikes and preemptively suggest focus blocks.
+              We don't just track grades. We build academic empires. By defining your weightages now, Outlier AI can predict your workload spikes and preemptively suggest focus blocks.
             </p>
           </div>
         </div>

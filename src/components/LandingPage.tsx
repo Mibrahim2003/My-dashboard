@@ -21,7 +21,7 @@ export const LandingPage = () => {
       {/* TopNavBar */}
       <nav className="fixed top-0 w-full z-50 border-b-4 border-ink bg-background flex justify-between items-center h-20 px-6 md:px-12 shadow-[3px_3px_0px_#1A1A1A]">
         <div className="text-2xl font-black text-ink uppercase tracking-tighter">
-          StudyForge
+          Outlier
         </div>
         <div className="hidden md:flex gap-8 items-center font-bold tracking-tighter uppercase text-sm">
           <a className="text-ink border-b-4 border-ink pb-1" href="#">Home</a>
@@ -162,7 +162,7 @@ export const LandingPage = () => {
       <footer className="bg-background border-t-4 border-ink w-full">
         <div className="flex flex-col md:flex-row justify-between items-center py-12 px-6 md:px-12 w-full gap-8">
           <div className="flex flex-col gap-4">
-            <div className="font-black text-3xl text-ink uppercase tracking-tighter">StudyForge</div>
+            <div className="font-black text-3xl text-ink uppercase tracking-tighter">Outlier</div>
             <p className="uppercase tracking-widest text-sm text-ink/60 font-bold">
               Built for students who want to win.
             </p>
@@ -173,7 +173,7 @@ export const LandingPage = () => {
             <a className="text-ink hover:text-secondary transition-colors" href="#">GitHub</a>
           </div>
           <div className="text-xs font-bold uppercase tracking-tighter text-ink/40">
-            © 2026 StudyForge Academic Systems. No soft corners allowed.
+            © 2026 Outlier Academic Systems. No soft corners allowed.
           </div>
         </div>
       </footer>
