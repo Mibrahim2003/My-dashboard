@@ -2,6 +2,19 @@ import { ArrowRight, BarChart3, BrainCircuit, BellRing, Sparkles } from 'lucide-
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 15 } }
+};
+
 export const LandingPage = () => {
   return (
     <div className="min-h-screen overflow-x-hidden">
@@ -26,14 +39,14 @@ export const LandingPage = () => {
         <div className="absolute top-40 left-10 w-24 h-24 bg-secondary border-3 border-ink -rotate-12 hidden lg:block"></div>
         <div className="absolute bottom-20 right-20 w-32 h-32 rounded-full bg-tertiary border-3 border-ink hidden lg:block"></div>
         <div className="absolute top-60 right-10 w-16 h-16 bg-primary-container border-3 border-ink rotate-45 hidden lg:block"></div>
-        
+
         <div className="z-10 text-center max-w-5xl">
-          <motion.h1 
+          <motion.h1
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="text-6xl md:text-9xl font-black uppercase tracking-tighter mb-6 leading-none"
           >
-            Track. <span className="bg-primary-container px-4">Analyze.</span> <br/>Dominate.
+            Track. <span className="bg-primary-container px-4">Analyze.</span> <br />Dominate.
           </motion.h1>
           <p className="text-xl md:text-3xl font-medium max-w-3xl mx-auto mb-12 border-l-8 border-ink pl-6 text-left">
             AI-powered academic dashboard that tracks your grades, predicts your GPA, and tells you exactly what to study next.
@@ -45,26 +58,30 @@ export const LandingPage = () => {
           </div>
         </div>
 
-        {/* Hero Graphic */}
-        <div className="mt-20 w-full max-w-6xl border-3 border-ink shadow-[12px_12px_0px_#1A1A1A] bg-white overflow-hidden aspect-video relative group">
-          <img 
-            alt="StudyForge Dashboard Preview" 
-            className="w-full h-full object-cover filter contrast-125 brightness-110" 
-            src="https://picsum.photos/seed/dashboard/1200/800"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-ink/10 mix-blend-multiply"></div>
-          <div className="absolute bottom-8 left-8 bg-secondary text-white px-6 py-2 border-3 border-ink font-black uppercase tracking-widest -rotate-2">
-            Predictive AI Active
-          </div>
-        </div>
       </main>
 
+      {/* Ticker Tape */}
+      <div className="bg-ink text-primary-container border-y-4 border-ink py-4 overflow-hidden flex whitespace-nowrap">
+        <div className="animate-marquee font-black uppercase tracking-tighter text-2xl flex gap-8 px-4 items-center">
+          <span>DOMINATE YOUR CLASSES • NEVER MISS A DEADLINE • PREDICT YOUR GPA •</span>
+          <span>DOMINATE YOUR CLASSES • NEVER MISS A DEADLINE • PREDICT YOUR GPA •</span>
+          <span>DOMINATE YOUR CLASSES • NEVER MISS A DEADLINE • PREDICT YOUR GPA •</span>
+          <span>DOMINATE YOUR CLASSES • NEVER MISS A DEADLINE • PREDICT YOUR GPA •</span>
+        </div>
+      </div>
+
       {/* Bento Grid Features */}
-      <section className="py-24 px-6 md:px-12 bg-background">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+      <section className="py-24 px-6 md:px-12 bg-white relative border-b-4 border-ink" style={{ backgroundImage: 'radial-gradient(circle, #1A1A1A 1px, transparent 1px)', backgroundSize: '32px 32px' }}>
+        <div className="absolute inset-0 bg-white/85"></div>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto relative z-10"
+        >
           {/* Card 1: Smart Grade Tracking */}
-          <div className="bg-primary-container border-3 border-ink p-8 shadow-[6px_6px_0px_#1A1A1A] flex flex-col gap-6">
+          <motion.div variants={itemVariants} className="bg-primary-container border-3 border-ink p-8 shadow-[6px_6px_0px_#1A1A1A] hover:shadow-[12px_12px_0px_#1A1A1A] hover:-translate-y-2 hover:-translate-x-1 transition-all duration-300 flex flex-col gap-6 group">
             <div className="w-16 h-16 border-3 border-ink bg-white flex items-center justify-center">
               <BarChart3 size={32} />
             </div>
@@ -73,9 +90,9 @@ export const LandingPage = () => {
             <div className="mt-auto pt-6 border-t-4 border-ink">
               <span className="font-black uppercase text-sm">Real-time Sync Enabled</span>
             </div>
-          </div>
+          </motion.div>
           {/* Card 2: AI Study Recommendations */}
-          <div className="bg-secondary border-3 border-ink p-8 shadow-[6px_6px_0px_#1A1A1A] text-white flex flex-col gap-6 -rotate-1">
+          <motion.div variants={itemVariants} className="bg-secondary border-3 border-ink p-8 shadow-[6px_6px_0px_#1A1A1A] hover:shadow-[12px_12px_0px_#1A1A1A] hover:-translate-y-2 hover:-translate-x-1 transition-all duration-300 text-white flex flex-col gap-6 -rotate-1 origin-bottom-left hover:rotate-0">
             <div className="w-16 h-16 border-3 border-ink bg-white text-ink flex items-center justify-center">
               <BrainCircuit size={32} />
             </div>
@@ -84,9 +101,9 @@ export const LandingPage = () => {
             <div className="mt-auto pt-6 border-t-4 border-ink">
               <span className="font-black uppercase text-sm bg-white text-ink px-2">98% Accuracy Rate</span>
             </div>
-          </div>
+          </motion.div>
           {/* Card 3: Assignment Reminders */}
-          <div className="bg-tertiary border-3 border-ink p-8 shadow-[6px_6px_0px_#1A1A1A] text-white flex flex-col gap-6">
+          <motion.div variants={itemVariants} className="bg-tertiary border-3 border-ink p-8 shadow-[6px_6px_0px_#1A1A1A] hover:shadow-[12px_12px_0px_#1A1A1A] hover:-translate-y-2 hover:-translate-x-1 transition-all duration-300 text-white flex flex-col gap-6">
             <div className="w-16 h-16 border-3 border-ink bg-white text-ink flex items-center justify-center">
               <BellRing size={32} />
             </div>
@@ -95,13 +112,19 @@ export const LandingPage = () => {
             <div className="mt-auto pt-6 border-t-4 border-ink">
               <span className="font-black uppercase text-sm">Anti-Procrastination Mode</span>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Social Proof / Stats */}
       <section className="bg-ink text-background py-20 px-6 md:px-12 overflow-hidden relative">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.5, type: "spring" }}
+          className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12"
+        >
           <div className="text-center md:text-left">
             <div className="text-7xl md:text-9xl font-black leading-none">50K+</div>
             <div className="text-xl font-bold uppercase tracking-widest text-primary-container">Students Forging Success</div>
@@ -112,13 +135,19 @@ export const LandingPage = () => {
             <div className="bg-zinc-800 border-2 border-zinc-700 p-4 font-bold uppercase text-xs">95% Success Rate</div>
             <div className="bg-zinc-800 border-2 border-zinc-700 p-4 font-bold uppercase text-xs">GPA Prediction AI</div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Final CTA */}
-      <section className="py-32 px-6 text-center">
-        <div className="max-w-4xl mx-auto bg-white border-8 border-ink p-12 shadow-[16px_16px_0px_#A8275A] relative">
-          <div className="absolute -top-10 -right-10 bg-primary-container border-3 border-ink p-4 font-black uppercase -rotate-12">
+      <section className="py-32 px-6 text-center bg-background border-t-4 border-ink">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0, rotate: -2, y: 50 }}
+          whileInView={{ scale: 1, opacity: 1, rotate: 0, y: 0 }}
+          viewport={{ once: false, amount: 0.5 }}
+          transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
+          className="max-w-4xl mx-auto bg-white border-8 border-ink p-12 shadow-[16px_16px_0px_#A8275A] relative"
+        >
+          <div className="absolute -top-10 -right-10 bg-primary-container border-3 border-ink p-4 font-black uppercase -rotate-12 transition-transform hover:scale-110 hover:-rotate-6 cursor-default">
             Free Forever
           </div>
           <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-8">Ready to Win?</h2>
@@ -126,7 +155,7 @@ export const LandingPage = () => {
           <Link to="/onboarding" className="bg-primary-container border-3 border-ink px-12 py-6 text-2xl font-black uppercase tracking-tighter shadow-[6px_6px_0px_#1A1A1A] hover:bg-ink hover:text-primary-container transition-all inline-block w-full md:w-auto">
             Start Forging Now
           </Link>
-        </div>
+        </motion.div>
       </section>
 
       {/* Footer */}

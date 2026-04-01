@@ -2,7 +2,7 @@
 
 @theme {
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  
+
   --color-background: #FFF6E3;
   --color-primary: #6c5a00;
   --color-primary-container: #ffde59;
@@ -42,4 +42,20 @@
 
 @utility neo-brutal-button {
   @apply border-3 border-ink px-5 py-1.5 font-black uppercase tracking-tighter shadow-[3px_3px_0px_#1A1A1A] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+  display: flex;
+  white-space: nowrap;
 }
