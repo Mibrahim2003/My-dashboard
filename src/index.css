@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-background: #FFF6E3;
+  --color-primary: #6c5a00;
+  --color-primary-container: #ffde59;
+  --color-secondary: #a8275a;
+  --color-tertiary: #006761;
+  --color-surface: #ffffff;
+  --color-ink: #1A1A1A;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&display=swap');
+
+@layer base {
+  html {
+    font-size: 13px;
+  }
+
+  body {
+    @apply bg-background text-ink font-sans;
+  }
+}
+
+@utility neo-brutal-shadow {
+  box-shadow: 3px 3px 0px #1A1A1A;
+}
+
+@utility neo-brutal-shadow-lg {
+  box-shadow: 6px 6px 0px #1A1A1A;
+}
+
+@utility neo-brutal-shadow-pink {
+  box-shadow: 3px 3px 0px #a8275a;
+}
+
+@utility neo-brutal-card {
+  @apply border-3 border-ink bg-white neo-brutal-shadow;
+}
+
+@utility neo-brutal-button {
+  @apply border-3 border-ink px-5 py-1.5 font-black uppercase tracking-tighter shadow-[3px_3px_0px_#1A1A1A] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none;
+}
