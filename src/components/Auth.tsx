@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
-import { useStore } from '../context/StoreContext';
 import { supabase } from '../lib/supabase';
 
 export function Auth() {
   const navigate = useNavigate();
-  const { userProfile } = useStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -18,7 +16,7 @@ export function Auth() {
     setAuthError(null);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` }
+      options: { redirectTo: `${window.location.origin}/post-auth` }
     });
     
     if (error) {
@@ -41,7 +39,7 @@ export function Auth() {
       setIsLoading(false);
     } else {
       setIsLoading(false);
-      navigate(userProfile?.name ? '/dashboard' : '/profile-setup');
+      navigate('/post-auth');
     }
   };
 

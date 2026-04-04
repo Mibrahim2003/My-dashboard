@@ -13,84 +13,118 @@ import { Analytics } from './components/Analytics';
 import { Onboarding } from './components/Onboarding';
 import { ProfileSetup } from './components/ProfileSetup';
 import { CourseDetail } from './components/CourseDetail';
+import { PostAuthGate } from './components/PostAuthGate';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { PublicOnlyRoute } from './components/PublicOnlyRoute';
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        
-        {/* Auth Route */}
-        <Route path="/auth" element={<Auth />} />
-        
-        {/* Onboarding */}
-        <Route path="/profile-setup" element={<ProfileSetup />} />
-        <Route path="/onboarding" element={<Onboarding />} />
+        {/* ─── Public-Only Routes ────────────────────────────── */}
+        {/* Logged-in users are redirected away to /post-auth */}
+        <Route path="/" element={
+          <PublicOnlyRoute>
+            <LandingPage />
+          </PublicOnlyRoute>
+        } />
+        <Route path="/auth" element={
+          <PublicOnlyRoute>
+            <Auth />
+          </PublicOnlyRoute>
+        } />
 
-        {/* Protected Routes (Wrapped in Layout) */}
+        {/* ─── Post-Auth Gate ────────────────────────────────── */}
+        {/* The single canonical routing decision point.         */}
+        {/* Both Google OAuth and email auth funnel here.         */}
+        <Route path="/post-auth" element={<PostAuthGate />} />
+
+        {/* ─── Setup Routes (auth required, no profile needed) ── */}
+        <Route path="/profile-setup" element={
+          <ProtectedRoute requireProfile={false}>
+            <ProfileSetup />
+          </ProtectedRoute>
+        } />
+        <Route path="/onboarding" element={
+          <ProtectedRoute requireProfile={true} requireCourses={false}>
+            <Onboarding />
+          </ProtectedRoute>
+        } />
+
+        {/* ─── Protected Routes (auth + profile required) ────── */}
         <Route 
           path="/dashboard" 
           element={
-            <Layout>
-              <Dashboard />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/analytics" 
           element={
-            <Layout>
-              <Analytics />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Analytics />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/courses" 
           element={
-            <Layout>
-              <div className="py-12 text-center">
-                <h2 className="text-4xl font-black uppercase tracking-tighter">My Courses</h2>
-                <p className="mt-4 text-xl font-medium opacity-60 italic">Course listing view coming soon...</p>
-              </div>
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <div className="py-12 text-center">
+                  <h2 className="text-4xl font-black uppercase tracking-tighter">My Courses</h2>
+                  <p className="mt-4 text-xl font-medium opacity-60 italic">Course listing view coming soon...</p>
+                </div>
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/courses/:id" 
           element={
-            <Layout>
-              <CourseDetail />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <CourseDetail />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/library" 
           element={
-            <Layout>
-              <div className="py-12 text-center">
-                <h2 className="text-4xl font-black uppercase tracking-tighter">Knowledge Library</h2>
-                <p className="mt-4 text-xl font-medium opacity-60 italic">Library management coming soon...</p>
-              </div>
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <div className="py-12 text-center">
+                  <h2 className="text-4xl font-black uppercase tracking-tighter">Knowledge Library</h2>
+                  <p className="mt-4 text-xl font-medium opacity-60 italic">Library management coming soon...</p>
+                </div>
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/settings" 
           element={
-            <Layout>
-              <div className="py-12 text-center">
-                <h2 className="text-4xl font-black uppercase tracking-tighter">Settings</h2>
-                <p className="mt-4 text-xl font-medium opacity-60 italic">Account settings coming soon...</p>
-              </div>
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <div className="py-12 text-center">
+                  <h2 className="text-4xl font-black uppercase tracking-tighter">Settings</h2>
+                  <p className="mt-4 text-xl font-medium opacity-60 italic">Account settings coming soon...</p>
+                </div>
+              </Layout>
+            </ProtectedRoute>
           } 
         />
 
-        {/* Fallback */}
+        {/* ─── Fallback ──────────────────────────────────────── */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
 }
-
