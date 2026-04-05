@@ -44,7 +44,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!newCourse.impactLevel || !['heavy', 'standard', 'minimal'].includes(newCourse.impactLevel)) {
           needsMigration = true;
           const legacyColor = (newCourse as any).color;
-          if (legacyColor) {
+          if (typeof legacyColor === 'string') {
             if (legacyColor.includes('secondary')) newCourse.impactLevel = 'heavy';
             else if (legacyColor.includes('primary')) newCourse.impactLevel = 'standard';
             else newCourse.impactLevel = 'minimal';
