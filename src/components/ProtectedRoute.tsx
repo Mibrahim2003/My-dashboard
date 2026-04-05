@@ -8,8 +8,8 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   /** If true, user must have completed profile setup. Default: true */
   requireProfile?: boolean;
-  /** If true, user must have at least one course. Default: false */
-  requireCourses?: boolean;
+  /** If true, user must have explicitly committed their onboarding loadout. Default: false */
+  requireLoadout?: boolean;
 }
 
 /**
@@ -18,15 +18,15 @@ interface ProtectedRouteProps {
  * Tiers:
  *   - Auth required (always) — redirect to /auth if no session
  *   - Profile required (default on) — redirect to /profile-setup if no profile
- *   - Courses required (opt-in) — redirect to /onboarding if no courses
+ *   - Loadout required (opt-in) — redirect to /onboarding if not committed
  */
 export const ProtectedRoute = ({
   children,
   requireProfile = true,
-  requireCourses = false,
+  requireLoadout = true,
 }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const { userProfile, courses } = useStore();
+  const { userProfile, onboardingState } = useStore();
 
   if (loading) return <LoadingScreen message="Verifying Access..." />;
 
@@ -34,7 +34,7 @@ export const ProtectedRoute = ({
 
   if (requireProfile && !userProfile?.name) return <Navigate to="/profile-setup" replace />;
 
-  if (requireCourses && courses.length === 0) return <Navigate to="/onboarding" replace />;
+  if (requireLoadout && !onboardingState.loadoutCommitted) return <Navigate to="/onboarding" replace />;
 
   return <>{children}</>;
 };

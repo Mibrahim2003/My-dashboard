@@ -1,6 +1,6 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { Course, Deadline, UserProfile } from '../types';
+import { Course, Deadline, UserProfile, OnboardingState } from '../types';
 
 interface StoreContextType {
   userProfile: UserProfile | null;
@@ -11,22 +11,55 @@ interface StoreContextType {
   removeCourse: (courseId: string) => void;
   deadlines: Deadline[];
   setDeadlines: (deadlines: Deadline[]) => void;
+  onboardingState: OnboardingState;
+  commitLoadout: () => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userProfile, setUserProfile] = useLocalStorage<UserProfile | null>('outlier-profile', null);
+  
+  const [onboardingState, setOnboardingState] = useLocalStorage<OnboardingState>('outlier-onboarding', { 
+    loadoutCommitted: false, 
+    version: 1 
+  });
 
-  // Initial demo data so the dashboard doesn't look empty for the first time
-  const [courses, setCourses] = useLocalStorage<Course[]>('outlier-courses', [
-    { id: '1', code: 'CS-201', name: 'Data Structures', credits: 3, gradeProgress: 88, color: 'bg-primary', grade: 'A', weightage: { quizzes: 15, assignments: 10, midterm: 30, final: 40, project: 5 } },
-    { id: '2', code: 'EE-101', name: 'Circuit Theory', credits: 4, gradeProgress: 72, color: 'bg-secondary', grade: 'B+', weightage: { quizzes: 15, assignments: 10, midterm: 30, final: 40, project: 5 } },
-  ]);
+  // Zero-data initialization ensures new authenticated users pass through onboarding natively.
+  const [courses, setCourses] = useLocalStorage<Course[]>('outlier-courses', []);
 
-  const [deadlines, setDeadlines] = useLocalStorage<Deadline[]>('outlier-deadlines', [
-    { id: '1', title: 'Quiz 2 — CS-201', course: 'CS-201', topic: 'Graph Algorithms', dueDate: 'Due Tomorrow', priority: 'urgent' },
-  ]);
+  // Demo data removed. We also clear out deadlines so we start with a pure state.
+  const [deadlines, setDeadlines] = useLocalStorage<Deadline[]>('outlier-deadlines', []);
+
+  // Migration Effect for old courses that lack impactLevel and have raw color classes.
+  useEffect(() => {
+    if (courses.length > 0) {
+      let migrated = false;
+      const updatedCourses = courses.map(c => {
+        // Bypass TypeScript strict checking for legacy field "color"
+        const legacyColor = (c as any).color;
+        if (legacyColor && !c.impactLevel) {
+          migrated = true;
+          // Clean up the legacy field
+          const newCourse = { ...c, impactLevel: 'standard' as const };
+          delete (newCourse as any).color;
+          return newCourse;
+        }
+        return c;
+      });
+      if (migrated) {
+        setCourses(updatedCourses);
+      }
+    }
+  }, [courses, setCourses]);
+
+  const commitLoadout = () => {
+    setOnboardingState(prev => ({
+      ...prev,
+      loadoutCommitted: true,
+      committedAt: new Date().toISOString()
+    }));
+  };
 
   const addCourse = (course: Course) => {
     setCourses([...courses, course]);
@@ -37,7 +70,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <StoreContext.Provider value={{ userProfile, setUserProfile, courses, setCourses, addCourse, removeCourse, deadlines, setDeadlines }}>
+    <StoreContext.Provider value={{ 
+      userProfile, setUserProfile, 
+      courses, setCourses, addCourse, removeCourse, 
+      deadlines, setDeadlines, 
+      onboardingState, commitLoadout 
+    }}>
       {children}
     </StoreContext.Provider>
   );

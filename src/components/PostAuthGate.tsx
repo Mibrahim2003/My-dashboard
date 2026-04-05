@@ -15,7 +15,7 @@ import { LoadingScreen } from './LoadingScreen';
  */
 export const PostAuthGate = () => {
   const { user, loading } = useAuth();
-  const { userProfile, courses } = useStore();
+  const { userProfile, onboardingState } = useStore();
 
   if (loading) return <LoadingScreen message="Verifying Credentials..." />;
 
@@ -23,7 +23,7 @@ export const PostAuthGate = () => {
 
   if (!userProfile?.name) return <Navigate to="/profile-setup" replace />;
 
-  if (courses.length === 0) return <Navigate to="/onboarding" replace />;
+  if (!onboardingState.loadoutCommitted) return <Navigate to="/onboarding" replace />;
 
   return <Navigate to="/dashboard" replace />;
 };

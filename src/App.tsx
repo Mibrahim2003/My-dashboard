@@ -46,7 +46,7 @@ export default function App() {
           </ProtectedRoute>
         } />
         <Route path="/onboarding" element={
-          <ProtectedRoute requireProfile={true} requireCourses={false}>
+          <ProtectedRoute requireProfile={true} requireLoadout={false}>
             <Onboarding />
           </ProtectedRoute>
         } />

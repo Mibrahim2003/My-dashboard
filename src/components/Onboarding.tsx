@@ -1,12 +1,18 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { Course } from '../types';
 
 export const Onboarding = () => {
   const navigate = useNavigate();
-  const { courses, addCourse, removeCourse } = useStore();
+  const { courses, addCourse, removeCourse, commitLoadout, onboardingState } = useStore();
   
+  useEffect(() => {
+    if (onboardingState.loadoutCommitted) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [onboardingState.loadoutCommitted, navigate]);
+
   // Track form state
   const [newCourse, setNewCourse] = useState<Partial<Course>>({
     code: '',
@@ -31,10 +37,16 @@ export const Onboarding = () => {
 
   const totalCredits = courses.reduce((acc, c) => acc + c.credits, 0);
 
-  const getSemanticColor = (credits: number) => {
-    if (credits >= 4) return 'bg-secondary-container text-white'; // High impact / heavy load
-    if (credits === 3) return 'bg-primary-container text-on-background'; // Standard
-    return 'bg-white text-on-background'; // Low impact
+  const getImpactLevel = (credits: number): 'heavy' | 'standard' | 'minimal' => {
+    if (credits >= 4) return 'heavy';
+    if (credits === 3) return 'standard';
+    return 'minimal';
+  };
+
+  const getImpactStyles = (impactLevel: 'heavy' | 'standard' | 'minimal' = 'standard') => {
+    if (impactLevel === 'heavy') return 'bg-secondary-container text-white';
+    if (impactLevel === 'standard') return 'bg-primary-container text-on-background';
+    return 'bg-white text-on-background';
   };
 
   const handleAddCourse = () => {
@@ -45,7 +57,7 @@ export const Onboarding = () => {
       code: newCourse.code!.toUpperCase(),
       name: newCourse.name!.toUpperCase(),
       credits: Number(newCourse.credits),
-      color: getSemanticColor(Number(newCourse.credits)),
+      impactLevel: getImpactLevel(Number(newCourse.credits)),
       gradeProgress: 0,
       grade: 'N/A',
       weightage: newCourse.weightage || { quizzes: 10, assignments: 20, midterm: 25, final: 35, project: 10 }
@@ -211,7 +223,7 @@ export const Onboarding = () => {
                   </div>
                 ) : (
                   courses.map((course, i) => (
-                    <div key={i} className={`border-4 border-on-background p-3 flex justify-between items-center neo-shadow-sm ${course.color}`}>
+                    <div key={i} className={`border-4 border-on-background p-3 flex justify-between items-center neo-shadow-sm ${getImpactStyles(course.impactLevel)}`}>
                       <div className="flex flex-col truncate pr-2">
                         <span className="font-black text-lg leading-tight tracking-tight uppercase">{course.code}</span>
                         <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 truncate">{course.name}</span>
@@ -254,7 +266,10 @@ export const Onboarding = () => {
           
           <button 
             className="group w-full relative z-10" 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => {
+              commitLoadout();
+              navigate('/dashboard');
+            }}
             disabled={courses.length === 0}
           >
             <div className={`absolute inset-0 translate-x-2 translate-y-2 ${courses.length === 0 ? 'bg-on-background/30' : 'bg-on-background'}`}></div>

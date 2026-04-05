@@ -4,7 +4,7 @@ export interface Course {
   name: string;
   credits: number;
   gradeProgress: number;
-  color: string;
+  impactLevel: 'heavy' | 'standard' | 'minimal';
   grade: string;
   weightage: {
     quizzes: number;
@@ -39,4 +39,10 @@ export interface UserProfile {
   targetGpa: number;
   semester: string;
   courseCount: number;
+}
+
+export interface OnboardingState {
+  loadoutCommitted: boolean;
+  committedAt?: string;
+  version: number;
 }

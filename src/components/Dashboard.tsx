@@ -81,13 +81,19 @@ export const Dashboard = () => {
               <button className="text-sm font-bold underline decoration-4 decoration-primary">View All</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {courses.map((course) => (
+              {courses.map((course) => {
+                const getImpactStyles = (impactLevel: string) => {
+                  if (impactLevel === 'heavy') return 'bg-secondary';
+                  if (impactLevel === 'standard') return 'bg-primary';
+                  return 'bg-gray-200';
+                };
+                return (
                 <Link key={course.id} to={`/courses/${course.id}`}>
                   <motion.div 
                     whileHover={{ y: -4, x: -4, boxShadow: '10px 10px 0px #1A1A1A' }}
                     className="bg-white border-3 border-ink shadow-[6px_6px_0px_#1A1A1A] flex flex-col cursor-pointer h-full"
                   >
-                    <div className={`h-4 ${course.color} border-b-4 border-ink`}></div>
+                    <div className={`h-4 ${getImpactStyles(course.impactLevel)} border-b-4 border-ink`}></div>
                     <div className="p-6 flex-1 space-y-4">
                       <div className="flex justify-between items-start">
                         <span className="bg-ink text-white px-2 py-1 text-[10px] font-black uppercase">{course.code}</span>
@@ -100,13 +106,13 @@ export const Dashboard = () => {
                           <span>{course.gradeProgress}%</span>
                         </div>
                         <div className="w-full h-3 bg-background border-2 border-ink">
-                          <div className={`h-full ${course.color}`} style={{ width: `${course.gradeProgress}%` }}></div>
+                          <div className={`h-full ${getImpactStyles(course.impactLevel)}`} style={{ width: `${course.gradeProgress}%` }}></div>
                         </div>
                       </div>
                     </div>
                   </motion.div>
                 </Link>
-              ))}
+              )})}
             </div>
           </div>
 
