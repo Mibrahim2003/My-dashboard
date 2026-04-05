@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import { Course, Deadline, UserProfile, OnboardingState } from '../types';
@@ -39,7 +39,7 @@ const normalizeCourse = (course: any): Course => {
   }
 
   return {
-    id: String(course?.id ?? Date.now()),
+    id: String(course?.id ?? crypto.randomUUID()),
     code: String(course?.code ?? 'UNKNOWN'),
     name: String(course?.name ?? 'UNKNOWN COURSE'),
     credits: Number(course?.credits ?? 0),
@@ -72,9 +72,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isHydrating, setIsHydrating] = useState(true);
   const [syncError, setSyncError] = useState<string | null>(null);
 
+  const syncErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const reportSyncError = (message: string) => {
     setSyncError(message);
     console.warn(message);
+    // Auto-dismiss after 6s so transient failures don't linger forever
+    if (syncErrorTimer.current) clearTimeout(syncErrorTimer.current);
+    syncErrorTimer.current = setTimeout(() => setSyncError(null), 6000);
   };
 
   useEffect(() => {
@@ -90,62 +95,83 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return;
     }
 
+    // Capture the user ID at effect-start so we can detect stale responses
+    // from a previous auth session if the user logs out/in rapidly.
+    const targetUserId = user.id;
+    let cancelled = false;
+
     const hydrateStore = async () => {
       setIsHydrating(true);
       setSyncError(null);
 
-      const [profileRes, coursesRes, deadlinesRes, onboardingRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
-        supabase.from('courses').select('*').eq('user_id', user.id),
-        supabase.from('deadlines').select('*').eq('user_id', user.id),
-        supabase.from('onboarding_states').select('*').eq('user_id', user.id).maybeSingle(),
-      ]);
+      try {
+        const [profileRes, coursesRes, deadlinesRes, onboardingRes] = await Promise.all([
+          supabase.from('profiles').select('*').eq('user_id', targetUserId).maybeSingle(),
+          supabase.from('courses').select('*').eq('user_id', targetUserId),
+          supabase.from('deadlines').select('*').eq('user_id', targetUserId),
+          supabase.from('onboarding_states').select('*').eq('user_id', targetUserId).maybeSingle(),
+        ]);
 
-      if (profileRes.error && profileRes.error.code !== 'PGRST116') {
-        reportSyncError(`Failed to load profile from Supabase: ${profileRes.error.message}`);
-      }
-      if (coursesRes.error) {
-        reportSyncError(`Failed to load courses from Supabase: ${coursesRes.error.message}`);
-      }
-      if (deadlinesRes.error) {
-        reportSyncError(`Failed to load deadlines from Supabase: ${deadlinesRes.error.message}`);
-      }
-      if (onboardingRes.error && onboardingRes.error.code !== 'PGRST116') {
-        reportSyncError(`Failed to load onboarding state from Supabase: ${onboardingRes.error.message}`);
-      }
+        // Guard: if the user changed while we were fetching, discard results.
+        if (cancelled) return;
 
-      setUserProfileState(
-        profileRes.data
-          ? {
-              name: profileRes.data.name,
-              degree: profileRes.data.degree,
-              universityName: profileRes.data.university_name,
-              graduationYear: String(profileRes.data.graduation_year),
-              currentCgpa: Number(profileRes.data.current_cgpa),
-              targetGpa: Number(profileRes.data.target_gpa),
-              semester: profileRes.data.semester,
-              courseCount: Number(profileRes.data.course_count ?? 0),
-            }
-          : null,
-      );
+        if (profileRes.error && profileRes.error.code !== 'PGRST116') {
+          reportSyncError(`Failed to load profile from Supabase: ${profileRes.error.message}`);
+        }
+        if (coursesRes.error) {
+          reportSyncError(`Failed to load courses from Supabase: ${coursesRes.error.message}`);
+        }
+        if (deadlinesRes.error) {
+          reportSyncError(`Failed to load deadlines from Supabase: ${deadlinesRes.error.message}`);
+        }
+        if (onboardingRes.error && onboardingRes.error.code !== 'PGRST116') {
+          reportSyncError(`Failed to load onboarding state from Supabase: ${onboardingRes.error.message}`);
+        }
 
-      setCoursesState((coursesRes.data ?? []).map(normalizeCourse));
-      setDeadlinesState(
-        (deadlinesRes.data ?? []).map((row: any) => ({
-          id: String(row.id),
-          title: row.title,
-          course: row.course,
-          topic: row.topic,
-          dueDate: row.due_date,
-          priority: row.priority,
-        })),
-      );
-      setOnboardingState(onboardingRes.data ? mapOnboardingRow(onboardingRes.data) : DEFAULT_ONBOARDING_STATE);
-      setIsHydrating(false);
+        setUserProfileState(
+          profileRes.data
+            ? {
+                name: profileRes.data.name,
+                degree: profileRes.data.degree,
+                universityName: profileRes.data.university_name,
+                graduationYear: String(profileRes.data.graduation_year),
+                currentCgpa: Number(profileRes.data.current_cgpa),
+                targetGpa: Number(profileRes.data.target_gpa),
+                semester: profileRes.data.semester,
+                courseCount: Number(profileRes.data.course_count ?? 0),
+              }
+            : null,
+        );
+
+        setCoursesState((coursesRes.data ?? []).map(normalizeCourse));
+        setDeadlinesState(
+          (deadlinesRes.data ?? []).map((row: any) => ({
+            id: String(row.id),
+            title: row.title,
+            course: row.course,
+            topic: row.topic,
+            dueDate: row.due_date,
+            priority: row.priority,
+          })),
+        );
+        setOnboardingState(onboardingRes.data ? mapOnboardingRow(onboardingRes.data) : DEFAULT_ONBOARDING_STATE);
+      } catch (err) {
+        if (!cancelled) {
+          reportSyncError(`Failed to connect to Supabase: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsHydrating(false);
+        }
+      }
     };
 
     void hydrateStore();
-  }, [user, authLoading]);
+
+    // Cleanup: if the effect re-runs (user changed), mark this run as stale.
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, authLoading]);
 
   const setUserProfile = (profile: UserProfile | null) => {
     setUserProfileState(profile);
@@ -205,7 +231,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         weightage: course.weightage,
       }));
 
-      const { error: upsertError } = await supabase.from('courses').upsert(payload, { onConflict: 'id' });
+      const { error: upsertError } = await supabase.from('courses').upsert(payload, { onConflict: 'user_id,id' });
       if (upsertError) {
         reportSyncError(`Failed to sync courses: ${upsertError.message}`);
       }
@@ -214,10 +240,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setCourses = (nextCourses: Course[]) => {
     const normalized = nextCourses.map(normalizeCourse);
-    const previousCourses = courses;
-    setCoursesState(normalized);
+    // Capture previous from the functional updater to avoid stale closure race
+    let snapshotPrev: Course[] = [];
+    setCoursesState((prev) => {
+      snapshotPrev = prev;
+      return normalized;
+    });
 
-    void syncCourses(normalized, previousCourses);
+    void syncCourses(normalized, snapshotPrev);
   };
 
   const addCourse = (course: Course) => {
@@ -240,7 +270,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           grade: normalized.grade,
           weightage: normalized.weightage,
         },
-        { onConflict: 'id' },
+        { onConflict: 'user_id,id' },
       )
       .then(({ error }) => {
         if (error) {
@@ -251,8 +281,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const removeCourse = (courseId: string) => {
-    const previousCourses = courses;
-    setCoursesState((prev) => prev.filter((c) => c.id !== courseId));
+    // Capture the specific course for atomic rollback instead of clobbering
+    // the whole array snapshot (which could undo concurrent edits).
+    let removedCourse: Course | undefined;
+    setCoursesState((prev) => {
+      removedCourse = prev.find((c) => c.id === courseId);
+      return prev.filter((c) => c.id !== courseId);
+    });
 
     if (!user) return;
 
@@ -264,7 +299,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       .then(({ error }) => {
         if (error) {
           reportSyncError(`Failed to remove course: ${error.message}`);
-          setCoursesState(previousCourses);
+          // Atomic rollback: re-insert only the removed course
+          if (removedCourse) {
+            setCoursesState((prev) => [...prev, removedCourse!]);
+          }
         }
       });
   };
@@ -299,7 +337,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         priority: deadline.priority,
       }));
 
-      const { error: upsertError } = await supabase.from('deadlines').upsert(payload, { onConflict: 'id' });
+      const { error: upsertError } = await supabase.from('deadlines').upsert(payload, { onConflict: 'user_id,id' });
       if (upsertError) {
         reportSyncError(`Failed to sync deadlines: ${upsertError.message}`);
       }
@@ -307,10 +345,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const setDeadlines = (nextDeadlines: Deadline[]) => {
-    const previousDeadlines = deadlines;
-    setDeadlinesState(nextDeadlines);
+    // Capture previous from functional updater to avoid stale closure race
+    let snapshotPrev: Deadline[] = [];
+    setDeadlinesState((prev) => {
+      snapshotPrev = prev;
+      return nextDeadlines;
+    });
 
-    void syncDeadlines(nextDeadlines, previousDeadlines);
+    void syncDeadlines(nextDeadlines, snapshotPrev);
   };
 
   const commitLoadout = () => {

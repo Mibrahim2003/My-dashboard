@@ -48,7 +48,7 @@ export const Onboarding = () => {
     if (!isTerminalValid) return;
     
     addCourse({
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       code: newCourse.code!.toUpperCase(),
       name: newCourse.name!.toUpperCase(),
       credits: Number(newCourse.credits),

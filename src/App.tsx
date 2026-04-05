@@ -41,7 +41,7 @@ export default function App() {
 
         {/* ─── Setup Routes (auth required, no profile needed) ── */}
         <Route path="/profile-setup" element={
-          <ProtectedRoute requireProfile={false}>
+          <ProtectedRoute requireProfile={false} requireLoadout={false}>
             <ProfileSetup />
           </ProtectedRoute>
         } />
