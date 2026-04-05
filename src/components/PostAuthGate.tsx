@@ -10,7 +10,7 @@ import { LoadingScreen } from './LoadingScreen';
  * Zero UI — just reads state and redirects:
  *   1. Not authenticated → /auth
  *   2. No profile → /profile-setup
- *   3. No courses → /onboarding
+ *   3. No loadout committed → /onboarding
  *   4. All good → /dashboard
  */
 export const PostAuthGate = () => {

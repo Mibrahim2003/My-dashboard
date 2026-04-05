@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { Course } from '../types';
+import { getImpactStyles } from '../utils/impactStyles';
 
 export const Onboarding = () => {
   const navigate = useNavigate();
@@ -41,12 +42,6 @@ export const Onboarding = () => {
     if (credits >= 4) return 'heavy';
     if (credits === 3) return 'standard';
     return 'minimal';
-  };
-
-  const getImpactStyles = (impactLevel: 'heavy' | 'standard' | 'minimal' = 'standard') => {
-    if (impactLevel === 'heavy') return 'bg-secondary-container text-white';
-    if (impactLevel === 'standard') return 'bg-primary-container text-on-background';
-    return 'bg-white text-on-background';
   };
 
   const handleAddCourse = () => {

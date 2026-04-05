@@ -13,6 +13,7 @@ interface StoreContextType {
   setDeadlines: (deadlines: Deadline[]) => void;
   onboardingState: OnboardingState;
   commitLoadout: () => void;
+  resetLoadoutCommit: () => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -36,16 +37,32 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (courses.length > 0) {
       let migrated = false;
       const updatedCourses = courses.map(c => {
-        // Bypass TypeScript strict checking for legacy field "color"
-        const legacyColor = (c as any).color;
-        if (legacyColor && !c.impactLevel) {
-          migrated = true;
-          // Clean up the legacy field
-          const newCourse = { ...c, impactLevel: 'standard' as const };
-          delete (newCourse as any).color;
-          return newCourse;
+        let newCourse = { ...c };
+        let needsMigration = false;
+
+        // 1. Guarantee impactLevel
+        if (!newCourse.impactLevel || !['heavy', 'standard', 'minimal'].includes(newCourse.impactLevel)) {
+          needsMigration = true;
+          const legacyColor = (newCourse as any).color;
+          if (legacyColor) {
+            if (legacyColor.includes('secondary')) newCourse.impactLevel = 'heavy';
+            else if (legacyColor.includes('primary')) newCourse.impactLevel = 'standard';
+            else newCourse.impactLevel = 'minimal';
+          } else {
+            if (newCourse.credits >= 4) newCourse.impactLevel = 'heavy';
+            else if (newCourse.credits === 3) newCourse.impactLevel = 'standard';
+            else newCourse.impactLevel = 'minimal';
+          }
         }
-        return c;
+
+        // 2. Erase legacy color
+        if ('color' in newCourse) {
+          needsMigration = true;
+          delete (newCourse as any).color;
+        }
+
+        if (needsMigration) migrated = true;
+        return newCourse;
       });
       if (migrated) {
         setCourses(updatedCourses);
@@ -58,6 +75,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...prev,
       loadoutCommitted: true,
       committedAt: new Date().toISOString()
+    }));
+  };
+
+  const resetLoadoutCommit = () => {
+    setOnboardingState(prev => ({
+      ...prev,
+      loadoutCommitted: false,
+      committedAt: undefined
     }));
   };
 
@@ -74,7 +99,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       userProfile, setUserProfile, 
       courses, setCourses, addCourse, removeCourse, 
       deadlines, setDeadlines, 
-      onboardingState, commitLoadout 
+      onboardingState, commitLoadout, resetLoadoutCommit 
     }}>
       {children}
     </StoreContext.Provider>

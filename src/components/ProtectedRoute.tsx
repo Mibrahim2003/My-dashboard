@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   /** If true, user must have completed profile setup. Default: true */
   requireProfile?: boolean;
-  /** If true, user must have explicitly committed their onboarding loadout. Default: false */
+  /** If true, user must have explicitly committed their onboarding loadout. Default: true */
   requireLoadout?: boolean;
 }
 
@@ -18,7 +18,7 @@ interface ProtectedRouteProps {
  * Tiers:
  *   - Auth required (always) — redirect to /auth if no session
  *   - Profile required (default on) — redirect to /profile-setup if no profile
- *   - Loadout required (opt-in) — redirect to /onboarding if not committed
+ *   - Loadout required (default on) — redirect to /onboarding if not committed
  */
 export const ProtectedRoute = ({
   children,
