@@ -15,6 +15,8 @@ interface StoreContextType {
   onboardingState: OnboardingState;
   commitLoadout: () => void;
   resetLoadoutCommit: () => void;
+  isHydrating: boolean;
+  syncError: string | null;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -67,6 +69,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [courses, setCoursesState] = useState<Course[]>([]);
   const [deadlines, setDeadlinesState] = useState<Deadline[]>([]);
   const [onboardingState, setOnboardingState] = useState<OnboardingState>(DEFAULT_ONBOARDING_STATE);
+  const [isHydrating, setIsHydrating] = useState(true);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  const reportSyncError = (message: string) => {
+    setSyncError(message);
+    console.warn(message);
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -76,10 +85,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCoursesState([]);
       setDeadlinesState([]);
       setOnboardingState(DEFAULT_ONBOARDING_STATE);
+      setSyncError(null);
+      setIsHydrating(false);
       return;
     }
 
     const hydrateStore = async () => {
+      setIsHydrating(true);
+      setSyncError(null);
+
       const [profileRes, coursesRes, deadlinesRes, onboardingRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
         supabase.from('courses').select('*').eq('user_id', user.id),
@@ -88,16 +102,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ]);
 
       if (profileRes.error && profileRes.error.code !== 'PGRST116') {
-        console.warn('Failed to load profile from Supabase:', profileRes.error.message);
+        reportSyncError(`Failed to load profile from Supabase: ${profileRes.error.message}`);
       }
       if (coursesRes.error) {
-        console.warn('Failed to load courses from Supabase:', coursesRes.error.message);
+        reportSyncError(`Failed to load courses from Supabase: ${coursesRes.error.message}`);
       }
       if (deadlinesRes.error) {
-        console.warn('Failed to load deadlines from Supabase:', deadlinesRes.error.message);
+        reportSyncError(`Failed to load deadlines from Supabase: ${deadlinesRes.error.message}`);
       }
       if (onboardingRes.error && onboardingRes.error.code !== 'PGRST116') {
-        console.warn('Failed to load onboarding state from Supabase:', onboardingRes.error.message);
+        reportSyncError(`Failed to load onboarding state from Supabase: ${onboardingRes.error.message}`);
       }
 
       setUserProfileState(
@@ -127,9 +141,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         })),
       );
       setOnboardingState(onboardingRes.data ? mapOnboardingRow(onboardingRes.data) : DEFAULT_ONBOARDING_STATE);
+      setIsHydrating(false);
     };
 
-    hydrateStore();
+    void hydrateStore();
   }, [user, authLoading]);
 
   const setUserProfile = (profile: UserProfile | null) => {
@@ -137,50 +152,72 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (!user || !profile) return;
 
-    void supabase.from('profiles').upsert(
-      {
+    void supabase
+      .from('profiles')
+      .upsert(
+        {
+          user_id: user.id,
+          name: profile.name,
+          degree: profile.degree,
+          university_name: profile.universityName,
+          graduation_year: profile.graduationYear,
+          current_cgpa: profile.currentCgpa,
+          target_gpa: profile.targetGpa,
+          semester: profile.semester,
+          course_count: profile.courseCount,
+        },
+        { onConflict: 'user_id' },
+      )
+      .then(({ error }) => {
+        if (error) reportSyncError(`Failed to save profile: ${error.message}`);
+      });
+  };
+
+  const syncCourses = async (nextCourses: Course[], previousCourses: Course[]) => {
+    if (!user) return;
+
+    const removedIds = previousCourses
+      .map((course) => course.id)
+      .filter((id) => !nextCourses.some((next) => next.id === id));
+
+    if (removedIds.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('courses')
+        .delete()
+        .eq('user_id', user.id)
+        .in('id', removedIds);
+
+      if (deleteError) {
+        reportSyncError(`Failed to delete removed courses: ${deleteError.message}`);
+      }
+    }
+
+    if (nextCourses.length > 0) {
+      const payload = nextCourses.map((course) => ({
+        id: course.id,
         user_id: user.id,
-        name: profile.name,
-        degree: profile.degree,
-        university_name: profile.universityName,
-        graduation_year: profile.graduationYear,
-        current_cgpa: profile.currentCgpa,
-        target_gpa: profile.targetGpa,
-        semester: profile.semester,
-        course_count: profile.courseCount,
-      },
-      { onConflict: 'user_id' },
-    );
+        code: course.code,
+        name: course.name,
+        credits: course.credits,
+        grade_progress: course.gradeProgress,
+        impact_level: course.impactLevel,
+        grade: course.grade,
+        weightage: course.weightage,
+      }));
+
+      const { error: upsertError } = await supabase.from('courses').upsert(payload, { onConflict: 'id' });
+      if (upsertError) {
+        reportSyncError(`Failed to sync courses: ${upsertError.message}`);
+      }
+    }
   };
 
   const setCourses = (nextCourses: Course[]) => {
     const normalized = nextCourses.map(normalizeCourse);
+    const previousCourses = courses;
     setCoursesState(normalized);
 
-    if (!user) return;
-
-    const payload = normalized.map((course) => ({
-      id: course.id,
-      user_id: user.id,
-      code: course.code,
-      name: course.name,
-      credits: course.credits,
-      grade_progress: course.gradeProgress,
-      impact_level: course.impactLevel,
-      grade: course.grade,
-      weightage: course.weightage,
-    }));
-
-    void supabase.from('courses').delete().eq('user_id', user.id).then(({ error }) => {
-      if (error) {
-        console.warn('Failed to clear courses before sync:', error.message);
-        return;
-      }
-      if (payload.length === 0) return;
-      void supabase.from('courses').insert(payload).then(({ error: insertError }) => {
-        if (insertError) console.warn('Failed to sync courses to Supabase:', insertError.message);
-      });
-    });
+    void syncCourses(normalized, previousCourses);
   };
 
   const addCourse = (course: Course) => {
@@ -189,55 +226,91 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (!user) return;
 
-    void supabase.from('courses').upsert(
-      {
-        id: normalized.id,
-        user_id: user.id,
-        code: normalized.code,
-        name: normalized.name,
-        credits: normalized.credits,
-        grade_progress: normalized.gradeProgress,
-        impact_level: normalized.impactLevel,
-        grade: normalized.grade,
-        weightage: normalized.weightage,
-      },
-      { onConflict: 'id' },
-    );
+    void supabase
+      .from('courses')
+      .upsert(
+        {
+          id: normalized.id,
+          user_id: user.id,
+          code: normalized.code,
+          name: normalized.name,
+          credits: normalized.credits,
+          grade_progress: normalized.gradeProgress,
+          impact_level: normalized.impactLevel,
+          grade: normalized.grade,
+          weightage: normalized.weightage,
+        },
+        { onConflict: 'id' },
+      )
+      .then(({ error }) => {
+        if (error) {
+          reportSyncError(`Failed to add course: ${error.message}`);
+          setCoursesState((prev) => prev.filter((c) => c.id !== normalized.id));
+        }
+      });
   };
 
   const removeCourse = (courseId: string) => {
+    const previousCourses = courses;
     setCoursesState((prev) => prev.filter((c) => c.id !== courseId));
 
     if (!user) return;
 
-    void supabase.from('courses').delete().eq('user_id', user.id).eq('id', courseId);
+    void supabase
+      .from('courses')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('id', courseId)
+      .then(({ error }) => {
+        if (error) {
+          reportSyncError(`Failed to remove course: ${error.message}`);
+          setCoursesState(previousCourses);
+        }
+      });
+  };
+
+  const syncDeadlines = async (nextDeadlines: Deadline[], previousDeadlines: Deadline[]) => {
+    if (!user) return;
+
+    const removedIds = previousDeadlines
+      .map((deadline) => deadline.id)
+      .filter((id) => !nextDeadlines.some((next) => next.id === id));
+
+    if (removedIds.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('deadlines')
+        .delete()
+        .eq('user_id', user.id)
+        .in('id', removedIds);
+
+      if (deleteError) {
+        reportSyncError(`Failed to delete removed deadlines: ${deleteError.message}`);
+      }
+    }
+
+    if (nextDeadlines.length > 0) {
+      const payload = nextDeadlines.map((deadline) => ({
+        id: deadline.id,
+        user_id: user.id,
+        title: deadline.title,
+        course: deadline.course,
+        topic: deadline.topic,
+        due_date: deadline.dueDate,
+        priority: deadline.priority,
+      }));
+
+      const { error: upsertError } = await supabase.from('deadlines').upsert(payload, { onConflict: 'id' });
+      if (upsertError) {
+        reportSyncError(`Failed to sync deadlines: ${upsertError.message}`);
+      }
+    }
   };
 
   const setDeadlines = (nextDeadlines: Deadline[]) => {
+    const previousDeadlines = deadlines;
     setDeadlinesState(nextDeadlines);
 
-    if (!user) return;
-
-    const payload = nextDeadlines.map((d) => ({
-      id: d.id,
-      user_id: user.id,
-      title: d.title,
-      course: d.course,
-      topic: d.topic,
-      due_date: d.dueDate,
-      priority: d.priority,
-    }));
-
-    void supabase.from('deadlines').delete().eq('user_id', user.id).then(({ error }) => {
-      if (error) {
-        console.warn('Failed to clear deadlines before sync:', error.message);
-        return;
-      }
-      if (payload.length === 0) return;
-      void supabase.from('deadlines').insert(payload).then(({ error: insertError }) => {
-        if (insertError) console.warn('Failed to sync deadlines to Supabase:', insertError.message);
-      });
-    });
+    void syncDeadlines(nextDeadlines, previousDeadlines);
   };
 
   const commitLoadout = () => {
@@ -250,15 +323,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (!user) return;
 
-    void supabase.from('onboarding_states').upsert(
-      {
-        user_id: user.id,
-        loadout_committed: true,
-        committed_at: next.committedAt,
-        version: next.version,
-      },
-      { onConflict: 'user_id' },
-    );
+    void supabase
+      .from('onboarding_states')
+      .upsert(
+        {
+          user_id: user.id,
+          loadout_committed: true,
+          committed_at: next.committedAt,
+          version: next.version,
+        },
+        { onConflict: 'user_id' },
+      )
+      .then(({ error }) => {
+        if (error) reportSyncError(`Failed to commit onboarding loadout: ${error.message}`);
+      });
   };
 
   const resetLoadoutCommit = () => {
@@ -271,15 +349,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (!user) return;
 
-    void supabase.from('onboarding_states').upsert(
-      {
-        user_id: user.id,
-        loadout_committed: false,
-        committed_at: null,
-        version: next.version,
-      },
-      { onConflict: 'user_id' },
-    );
+    void supabase
+      .from('onboarding_states')
+      .upsert(
+        {
+          user_id: user.id,
+          loadout_committed: false,
+          committed_at: null,
+          version: next.version,
+        },
+        { onConflict: 'user_id' },
+      )
+      .then(({ error }) => {
+        if (error) reportSyncError(`Failed to reset onboarding loadout: ${error.message}`);
+      });
   };
 
   return (
@@ -296,6 +379,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         onboardingState,
         commitLoadout,
         resetLoadoutCommit,
+        isHydrating,
+        syncError,
       }}
     >
       {children}

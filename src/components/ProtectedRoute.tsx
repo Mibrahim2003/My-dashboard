@@ -26,9 +26,9 @@ export const ProtectedRoute = ({
   requireLoadout = true,
 }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const { userProfile, onboardingState } = useStore();
+  const { userProfile, onboardingState, isHydrating } = useStore();
 
-  if (loading) return <LoadingScreen message="Verifying Access..." />;
+  if (loading || isHydrating) return <LoadingScreen message="Syncing Data..." />;
 
   if (!user) return <Navigate to="/auth" replace />;
 
