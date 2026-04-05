@@ -15,9 +15,9 @@ import { LoadingScreen } from './LoadingScreen';
  */
 export const PostAuthGate = () => {
   const { user, loading } = useAuth();
-  const { userProfile, onboardingState } = useStore();
+  const { userProfile, onboardingState, isHydrating } = useStore();
 
-  if (loading) return <LoadingScreen message="Verifying Credentials..." />;
+  if (loading || isHydrating) return <LoadingScreen message="Syncing Data..." />;
 
   if (!user) return <Navigate to="/auth" replace />;
 
