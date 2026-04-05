@@ -10,7 +10,7 @@ export const getImpactStyles = (impactLevel: ImpactLevel = 'standard'): string =
   return 'bg-white text-on-background border-on-background';
 };
 
-export const getDashboardImpactStyles = (impactLevel: string): string => {
+export const getDashboardImpactStyles = (impactLevel: ImpactLevel): string => {
   // Legacy dashboard variants (using standard primary/secondary vs container variants)
   if (impactLevel === 'heavy') return 'bg-secondary';
   if (impactLevel === 'standard') return 'bg-primary';
