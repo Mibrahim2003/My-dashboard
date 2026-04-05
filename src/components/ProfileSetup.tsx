@@ -61,7 +61,7 @@ export const ProfileSetup = () => {
             <div className="absolute -top-5 -left-4 bg-primary-container text-on-background px-4 py-1.5 border-4 border-on-background z-20 text-base font-black uppercase tracking-widest neo-shadow-sm">
               01 // CORE IDENTITY
             </div>
-            
+
             <div className="space-y-8">
               {/* Full Identity */}
               <div>
@@ -72,7 +72,7 @@ export const ProfileSetup = () => {
                   placeholder="USER_IDENTIFICATION"
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
 
@@ -86,7 +86,7 @@ export const ProfileSetup = () => {
                     placeholder="B.S. COMPUTER SCIENCE"
                     type="text"
                     value={formData.degree}
-                    onChange={(e) => setFormData({...formData, degree: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, degree: e.target.value })}
                   />
                 </div>
                 <div>
@@ -97,7 +97,7 @@ export const ProfileSetup = () => {
                     placeholder="UNIVERSITY NAME"
                     type="text"
                     value={formData.universityName}
-                    onChange={(e) => setFormData({...formData, universityName: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, universityName: e.target.value })}
                   />
                 </div>
               </div>
@@ -116,19 +116,24 @@ export const ProfileSetup = () => {
                     placeholder="202X"
                     type="number"
                     value={formData.graduationYear}
-                    onChange={(e) => setFormData({...formData, graduationYear: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, graduationYear: e.target.value })}
                   />
                 </div>
                 <div>
                   <span className="text-white/50 text-[10px] font-bold uppercase tracking-[0.4em]">CURRENT_PHASE</span>
-                  <select 
+                  <select
                     className="w-full bg-white border-4 border-on-background p-3 text-lg font-bold uppercase appearance-none focus:bg-primary-container focus:outline-none text-on-background"
                     value={formData.semester}
-                    onChange={(e) => setFormData({...formData, semester: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
                   >
                     <option>SEMESTER 01</option>
                     <option>SEMESTER 02</option>
                     <option>SEMESTER 03</option>
+                    <option>SEMESTER 04</option>
+                    <option>SEMESTER 05</option>
+                    <option>SEMESTER 06</option>
+                    <option>SEMESTER 07</option>
+                    <option>SEMESTER 08</option>
                   </select>
                 </div>
               </div>
@@ -146,7 +151,7 @@ export const ProfileSetup = () => {
                     type="number"
                     step="0.01"
                     value={formData.currentCgpa || ''}
-                    onChange={(e) => setFormData({...formData, currentCgpa: parseFloat(e.target.value) || 0})}
+                    onChange={(e) => setFormData({ ...formData, currentCgpa: parseFloat(e.target.value) || 0 })}
                   />
                 </div>
                 <div className="bg-white border-4 border-on-background p-6 neo-shadow-sm flex flex-col justify-between relative">
@@ -159,7 +164,7 @@ export const ProfileSetup = () => {
                     type="number"
                     step="0.01"
                     value={formData.targetGpa || ''}
-                    onChange={(e) => setFormData({...formData, targetGpa: parseFloat(e.target.value) || 0})}
+                    onChange={(e) => setFormData({ ...formData, targetGpa: parseFloat(e.target.value) || 0 })}
                   />
                 </div>
               </div>
